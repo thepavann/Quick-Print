@@ -1,1218 +1,562 @@
 # QuickPrint
 
-Build a production-quality SaaS web application called "QuickPrint" for a QR-based stationery printing system.
+<p align="center">
+  <img src="./assets/quickprint-banner.svg" alt="QuickPrint — QR-powered printing" width="100%"/>
+</p>
 
-IMPORTANT:
+<p align="center">
+  <strong>Print from anywhere. Submit only when you're there.</strong><br/>
+  QR-powered printing for stationery stores, colleges, libraries, and print centers.
+</p>
 
-This is NOT just a marketing website. Build the actual functional web application UI, navigation, database-ready architecture, authentication-ready structure, QR session system, print-job workflow, pricing system, and admin dashboard.
+<p align="center">
+  <a href="https://github.com/thepavann/Quick-Print/stargazers"><img src="https://img.shields.io/github/stars/thepavann/Quick-Print?style=for-the-badge&logo=github&label=STARS" alt="GitHub stars"/></a>
+  <a href="https://github.com/thepavann/Quick-Print/network/members"><img src="https://img.shields.io/github/forks/thepavann/Quick-Print?style=for-the-badge&logo=github&label=FORKS" alt="GitHub forks"/></a>
+  <a href="https://github.com/thepavann/Quick-Print/actions"><img src="https://img.shields.io/github/actions/workflow/status/thepavann/Quick-Print/ci.yml?style=for-the-badge&logo=github-actions&logoColor=white&label=CI" alt="CI status"/></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/thepavann/Quick-Print?style=for-the-badge&label=LICENSE" alt="MIT license"/></a>
+</p>
 
-The product solves this problem:
+<p align="center">
+  <a href="#why-quickprint">Why QuickPrint</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#getting-started">Get started</a> ·
+  <a href="#print-agent">Print Agent</a> ·
+  <a href="#security">Security</a>
+</p>
 
-A stationery shop has a computer connected to a physical printer. A QR code is displayed physically at the stationery counter. The QR code automatically refreshes every 60 seconds so students cannot take a photo of the QR and repeatedly submit print jobs from classrooms or elsewhere.
+---
 
-A student must physically be at the stationery to scan the currently active QR code.
+## ✨ What is QuickPrint?
 
-After scanning:
+**QuickPrint is a QR-based printing platform that connects a student's phone to a physical printer without requiring a student app or browser-to-printer hacks.**
 
-1. Student opens the mobile print interface.
+A stationery shop displays a temporary QR code at the counter. A student scans it, uploads a PDF, chooses printing options, submits the job, and collects the finished pages.
 
-2. The system validates the temporary QR session.
+**Temporary QR → Print session → PDF upload → Pricing → Print queue → Windows Print Agent → Physical printer**
 
-3. Student uploads a PDF.
+> **Core principle:** the browser creates and tracks print jobs. The Windows Print Agent performs the actual printing.
 
-4. System detects the PDF page count.
+---
 
-5. Student selects required printing options.
+## 🎯 Why QuickPrint?
 
-6. System calculates the price.
+Traditional stationery printing often means sending files over messaging apps, carrying USB drives, waiting at the shop computer, or manually explaining print settings.
 
-7. Student submits the print job.
+QuickPrint turns that into a focused mobile workflow:
 
-8. The print job enters the stationery printer queue.
+| Traditional | QuickPrint |
+|---|---|
+| Send files manually | Scan one QR |
+| Explain requirements | Select options yourself |
+| Staff downloads the file | Job enters a managed queue |
+| Manual printer operation | Windows Print Agent |
+| Ask for status | Live job status |
+| Permanent/shared link | Short-lived QR session |
+| Browser printing | Dedicated local print agent |
 
-9. The Windows Print Agent running on the stationery PC receives the job.
+---
 
-10. The agent downloads the PDF and sends it to the configured physical printer automatically.
+## 🚀 How it works
 
-11. The job status changes from QUEUED → PRINTING → COMPLETED.
+<p align="center">
+  <img src="./assets/quickprint-workflow.svg" alt="QuickPrint student workflow" width="100%"/>
+</p>
 
-12. Student sees confirmation that the print job has completed.
+### Student flow
 
-13. The job is then closed.
+1. **Scan** the QR displayed at the stationery.
+2. **Upload** a PDF from your phone.
+3. **Configure** copies, color, duplex, paper size, and page range.
+4. **Review** the server-calculated price.
+5. **Submit** the print job.
+6. **Track** queued → printing → completed.
+7. **Collect** the document at the counter.
 
-The Windows Print Agent is a separate local application and should NOT be implemented as browser printing. Design the web application so the agent can later communicate through a secure API/realtime mechanism.
+No student account is required for the V1 flow.
 
-==================================================
+### Owner flow
 
-DESIGN DIRECTION
+1. Create and configure a station.
+2. Display the station's fullscreen QR.
+3. Configure printers and pricing.
+4. Monitor the live queue.
+5. Connect a Windows Print Agent.
+6. Track completed and failed jobs.
+7. Review history and station activity.
 
-==================================================
+---
 
-Create a minimal, premium, professional SaaS interface.
+## 🔐 Temporary QR sessions
 
-Visual style:
+QuickPrint does **not** rely on a permanent print URL.
 
-- Modern SaaS
+A station creates a short-lived session:
 
-- Minimal
-
-- Clean
-
-- Professional
-
-- Apple-inspired simplicity
-
-- Lots of whitespace
-
-- Subtle borders
-
-- Soft shadows
-
-- Rounded cards
-
-- Premium typography
-
-- Inter or similar modern font
-
-- Light theme as default
-
-- Very subtle gray/blue accent
-
-- Avoid excessive gradients
-
-- Avoid flashy animations
-
-- Avoid unnecessary illustrations
-
-- Use Lucide icons
-
-- Excellent mobile responsiveness
-
-- Accessibility-focused
-
-- Fast-loading UI
-
-The interface should look like a serious B2B SaaS product, not a college project.
-
-==================================================
-
-APPLICATION STRUCTURE
-
-==================================================
-
-Create these major areas:
-
-1. Public Station QR Display
-
-2. Student Print Interface
-
-3. Print Job Status
-
-4. Stationery Owner Dashboard
-
-5. Printer Management
-
-6. Pricing Management
-
-7. Print Job Management
-
-8. QR Session Management
-
-9. Settings
-
-==================================================
-
-1. STATION QR DISPLAY
-
-==================================================
-
-Create a dedicated fullscreen route:
-
-/station/:stationId/display
-
-This page is intended to be displayed on a monitor/tablet at the stationery counter.
-
-Design:
-
-Top:
-
-QuickPrint logo
-
-Stationery name
-
-Online indicator
-
-Center:
-
-Large dynamically generated QR code
-
-Below QR:
-
-"Scan to Print"
-
-Show:
-
-"QR refreshes in 00:47"
-
-Create a visible circular countdown indicator.
-
-The QR must represent a short-lived print session.
-
-Do NOT use a permanent QR URL.
-
-Every 60 seconds:
-
-- Generate a new secure session token
-
-- Invalidate the previous token
-
-- Generate a new QR
-
-- Reset countdown
-
-Show subtle transition when the QR changes.
-
-Display:
-
-"Only scan the QR displayed at the stationery counter."
-
-Include a small security explanation:
-
-"QR refreshes automatically to prevent remote print submissions."
-
-The page should continue functioning automatically without user interaction.
-
-==================================================
-
-2. QR SESSION LOGIC
-
-==================================================
-
-Create a session model conceptually:
-
-qr_sessions:
-
-- id
-
-- station_id
-
-- token
-
-- created_at
-
-- expires_at
-
-- status
-
-- max_jobs
-
-- jobs_used
-
-A session should:
-
-- Be active for 60 seconds
-
-- Automatically expire
-
-- Be replaced by a new session
-
-- Allow configurable maximum print jobs
-
-- Reject expired tokens
-
-- Reject invalid tokens
-
-Never expose printer credentials or secret keys in the QR.
-
-QR should contain only a public short-lived session URL such as:
-
-/print/session/{temporary-token}
-
-The backend must validate the token.
-
-==================================================
-
-3. STUDENT PRINT PAGE
-
-==================================================
-
-Route:
-
-/print/session/:token
-
-When opened:
-
-First validate the session.
-
-If valid:
-
-Show:
-
-QUICKPRINT
-
-Stationery:
-
-"ABC Stationery"
-
-Status:
-
-"● Session Active"
-
-Countdown:
-
-"Expires in 42 seconds"
-
-Then show upload area.
-
-Upload card:
-
-"Upload your PDF"
-
-Drag and drop area.
-
-Button:
-
-"Choose PDF"
-
-Supported format:
-
-PDF
-
-Maximum file size:
-
-10MB initially.
-
-After upload:
-
-- Show filename
-
-- Show file size
-
-- Detect page count
-
-- Show PDF preview thumbnail if possible
-
-- Allow replacing the PDF
-
-Do not allow submission if the session has expired.
-
-==================================================
-
-4. PRINT OPTIONS
-
-==================================================
-
-After PDF upload show a clean configuration card.
-
-Options:
-
-Copies:
-
-[-] 1 [+]
-
-Color:
-
-○ Black & White
-
-○ Color
-
-Sides:
-
-○ Single-sided
-
-○ Double-sided
-
-Paper:
-
-○ A4
-
-○ A3
-
-Page range:
-
-○ All pages
-
-○ Custom range
-
-If custom range:
-
-Show input:
-
-"Example: 1-5, 8, 10-12"
-
-Validate page ranges.
-
-Only display options configured as available for that station.
-
-==================================================
-
-5. PRICE CALCULATION
-
-==================================================
-
-Create a real-time pricing summary.
-
-Example:
-
-Document
-
-assignment.pdf
-
-Pages
-
-8
-
-Copies
-
-2
-
-Print
-
-Black & White
-
-Sides
-
-Single-sided
-
-Paper
-
-A4
-
---------------------------------
-
-Subtotal
-
-₹32
-
-Total
-
-₹32
-
-The price MUST be calculated server-side.
-
-Never trust a price sent by the browser.
-
-Create pricing configuration per stationery.
-
-Example pricing:
-
-A4:
-
-B&W single = ₹2/page
-
-B&W double = ₹1.50/page
-
-Color single = ₹10/page
-
-Color double = ₹8/page
-
-A3:
-
-B&W single = ₹5/page
-
-B&W double = ₹4/page
-
-Color single = ₹15/page
-
-Color double = ₹12/page
-
-These are sample defaults only and must be editable by the stationery owner.
-
-==================================================
-
-6. SUBMIT PRINT
-
-==================================================
-
-Large primary button:
-
-"Submit Print Job"
-
-Before submission show:
-
-"You will be charged/asked to pay ₹32 for this print job."
-
-Since V1 is cash/manual collection, use:
-
-"Pay at Counter"
-
-Do NOT integrate online payment yet.
-
-The stationery owner will collect the amount manually.
-
-When submitted:
-
-Create print job:
-
-print_jobs:
-
-- id
-
-- station_id
-
-- session_id
-
-- file_url
-
-- filename
-
-- page_count
-
-- copies
-
-- color_mode
-
-- duplex
-
-- paper_size
-
-- page_range
-
-- amount
-
-- status
-
-- created_at
-
-- started_at
-
-- completed_at
-
-- error_message
-
-Initial status:
-
-QUEUED
-
-==================================================
-
-7. PRINT JOB STATUS
-
-==================================================
-
-After submission show a beautiful status screen.
-
-Example:
-
-Print Job #QP-10482
-
-assignment.pdf
-
-8 pages × 2 copies
-
-₹32
-
-Status timeline:
-
-✓ Submitted
-
-  11:42 AM
-
-● Queued
-
-  Waiting for printer
-
-○ Printing
-
-○ Completed
-
-The status should update automatically.
-
-When the Windows Print Agent starts:
-
-QUEUED → PRINTING
-
-When completed:
-
-PRINTING → COMPLETED
-
-If failed:
-
-→ FAILED
-
-Show a friendly error message.
-
-==================================================
-
-8. PRINT AGENT INTEGRATION
-
-==================================================
-
-The website must be designed around a separate Windows Print Agent.
-
-The agent will run on the stationery PC.
-
-Architecture:
-
-Student
-
-↓
-
-Web App
-
-↓
-
-Backend
-
-↓
-
+~~~text
+Station
+   ↓
+Temporary QR
+   ↓
+Validated Session
+   ↓
 Print Job
+~~~
 
-↓
+The QR-session design includes:
 
-Windows Print Agent
+- **60-second default lifetime**
+- Previous session invalidation
+- Server-side expiration checks
+- Configurable maximum jobs per session
+- No printer credentials inside the QR
+- Short-lived public session token
 
-↓
+> The QR is an access mechanism for a temporary print session — it is not a printer credential.
 
-Physical Printer
+---
 
-The agent should authenticate as a specific printer/station.
+## 🏗️ Architecture
 
-Create an API-ready structure:
+<p align="center">
+  <img src="./assets/quickprint-architecture.svg" alt="QuickPrint system architecture" width="100%"/>
+</p>
 
-POST /api/print-agent/heartbeat
+### System flow
 
-GET /api/print-agent/jobs
+~~~text
+┌──────────────┐
+│   Student    │
+│ Mobile/Web   │
+└──────┬───────┘
+       │ Scan QR / Upload PDF
+       ▼
+┌──────────────┐
+│  QuickPrint  │
+│   Web App    │
+└──────┬───────┘
+       │ Create / manage job
+       ▼
+┌──────────────┐
+│   Supabase   │
+│ Auth / DB /  │
+│ Storage / RLS│
+└──────┬───────┘
+       │ Queue
+       ▼
+┌──────────────┐
+│ Windows Print│
+│    Agent     │
+└──────┬───────┘
+       │ Windows printing
+       ▼
+┌──────────────┐
+│   Physical   │
+│   Printer    │
+└──────────────┘
+~~~
 
-POST /api/print-agent/jobs/:jobId/claim
+### Important separation
 
-POST /api/print-agent/jobs/:jobId/status
+QuickPrint separates:
 
-The exact implementation can use Supabase Realtime or secure API endpoints.
+- **Frontend** — student and owner experiences
+- **Backend** — validation, pricing, and job management
+- **Storage** — PDF files
+- **Queue** — print-job state
+- **Print Agent** — local machine integration
+- **Printer** — physical output
 
-The agent must only receive jobs belonging to its assigned station/printer.
+The browser never needs direct access to the physical printer.
 
-Never expose the agent secret to the browser.
+---
 
-==================================================
+## 🧩 Core features
 
-9. ADMIN / STATIONERY OWNER DASHBOARD
+### Student printing
 
-==================================================
+- 📱 Mobile-first experience
+- 📷 Temporary QR sessions
+- 📄 PDF uploads
+- 🔢 Page-count handling
+- 🖨️ Copies
+- 🎨 Black & white / color
+- ↔️ Single / double-sided
+- 📐 A4 / A3
+- 🔎 Custom page ranges
+- 💰 Live pricing preview
+- 📊 Print status timeline
+- ⚡ No student signup for V1
 
-Create a professional dashboard:
+### Station dashboard
 
-/dashboard
+- 📈 Overview
+- 🧾 Print-job management
+- 📺 Fullscreen QR display
+- 🖨️ Printer management
+- 💵 Pricing management
+- 📚 Print history
+- ⚙️ Station settings
+- 🟢 Printer/agent status
+- 🔎 Search and filtering
 
-Sidebar:
+### Print queue
 
-Overview
-
-Print Jobs
-
-QR Display
-
-Printer
-
-Pricing
-
-History
-
-Settings
-
-Top bar:
-
-Station name
-
-Printer status
-
-Profile
-
-Settings
-
-Overview cards:
-
-Today's Jobs
-
-Today's Pages
-
-Today's Revenue
-
-Current Queue
-
-Printer status card:
-
-🟢 Printer Online
-
-or
-
-🔴 Printer Offline
-
-Current queue:
-
-#10482
-
-assignment.pdf
-
-8 pages
-
-₹32
-
-PRINTING
-
-#10483
-
-notes.pdf
-
-4 pages
-
-₹8
-
+~~~text
 QUEUED
+   │
+   ▼
+PRINTING
+   │
+   ├──────────────► FAILED
+   │
+   ▼
+COMPLETED
+~~~
+
+The project also includes a **Demo Print Agent** workflow for development without a physical printer.
+
+---
+
+## 🛠️ Tech stack
+
+| Layer | Technology |
+|---|---|
+| Framework | TanStack Start |
+| UI | React + TypeScript |
+| Styling | Tailwind CSS |
+| Components | shadcn/ui-style components |
+| Icons | Lucide |
+| Backend | TanStack Start server routes |
+| Database | Supabase / PostgreSQL |
+| Authentication | Supabase Auth |
+| Storage | Supabase Storage |
+| Security | Supabase RLS + server validation |
+| Deployment | Vercel / Node-compatible hosting |
+| Local printing | Windows Print Agent / .NET |
+| Migrations | Supabase migrations |
+
+QuickPrint is **independent of Lovable and other proprietary app-builder runtimes**. The repository contains the application source, database migrations, and Windows Print Agent source.
+
+---
+
+## 📁 Project structure
+
+~~~text
+Quick-Print/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   └── workflows/
+├── assets/
+│   ├── quickprint-banner.svg
+│   ├── quickprint-architecture.svg
+│   └── quickprint-workflow.svg
+├── print-agent/
+├── public/
+├── src/
+│   ├── agent/
+│   ├── components/
+│   ├── integrations/
+│   ├── lib/
+│   └── routes/
+├── supabase/
+│   ├── config.toml
+│   └── migrations/
+├── .env.example
+├── CONTRIBUTING.md
+├── LICENSE
+├── SECURITY.md
+├── package.json
+├── roadmap.md
+├── tsconfig.json
+├── vercel.json
+└── vite.config.ts
+~~~
+
+---
+
+## ⚡ Getting started
+
+### Prerequisites
+
+- **Node.js** — use the version specified in .nvmrc
+- **npm**
+- Your own **Supabase project**
+- Git
+
+For physical-print development:
+
+- Windows
+- .NET SDK compatible with the Print Agent
+- A configured Windows printer
+
+### 1. Clone
+
+~~~bash
+git clone https://github.com/thepavann/Quick-Print.git
+cd Quick-Print
+~~~
+
+### 2. Install
+
+~~~bash
+npm install
+~~~
+
+### 3. Configure environment
+
+~~~bash
+cp .env.example .env
+~~~
 
-==================================================
+On Windows PowerShell:
 
-10. PRINT JOB MANAGEMENT
+~~~powershell
+Copy-Item .env.example .env
+~~~
 
-==================================================
+Fill in the values for **your own** Supabase project.
 
-Create a full jobs table.
+> Never commit .env.
 
-Columns:
+### 4. Run locally
 
-Job ID
+~~~bash
+npm run dev
+~~~
 
-Document
+### 5. Validate
 
-Pages
+~~~bash
+npm run typecheck
+npm run lint
+npm run build
+~~~
 
-Copies
+Or:
 
-Options
+~~~bash
+npm run check
+~~~
 
-Amount
+---
 
-Status
+## 🗄️ Supabase
 
-Created
+Database schema is maintained as versioned migrations in **supabase/migrations/**.
 
-Actions
+The project is designed around:
 
-Filters:
-
-All
-
-Queued
-
-Printing
-
-Completed
-
-Failed
-
-Search by:
-
-Job ID
-
-Filename
-
-Clicking a job opens details.
-
-==================================================
-
-11. PRICING MANAGEMENT
-
-==================================================
-
-Create an elegant pricing configuration page.
-
-Sections:
-
-A4
-
-B&W Single
-
-B&W Double
-
-Color Single
-
-Color Double
-
-A3
-
-B&W Single
-
-B&W Double
-
-Color Single
-
-Color Double
-
-Each has editable price.
-
-Also allow toggling availability:
-
-A4:
-
-✓ Enabled
-
-A3:
-
-✓ Enabled
-
-Color:
-
-✓ Enabled
-
-Double-sided:
-
-✓ Enabled
-
-Changes should be saved per station.
-
-==================================================
-
-12. QR DISPLAY MANAGEMENT
-
-==================================================
-
-Dashboard page:
-
-QR Display
-
-Current session:
-
-Active
-
-Expires in:
-
-00:43
-
-[ Open Fullscreen Display ]
-
-Session duration:
-
-[ 60 seconds ]
-
-Maximum jobs per session:
-
-[ 3 ]
-
-Security:
-
-✓ Expired QR sessions rejected
-
-✓ Previous QR invalidated
-
-✓ Rate limiting enabled
-
-Allow the owner to configure:
-
-- QR refresh duration
-
-- Maximum jobs per session
-
-Default:
-
-60 seconds
-
-3 jobs
-
-==================================================
-
-13. SECURITY
-
-==================================================
-
-Implement the application with security as a first-class concern.
-
-Requirements:
-
-- Short-lived QR tokens
-
-- Server-side session validation
-
-- Expired session rejection
-
-- Rate limiting
-
-- File size limits
-
-- PDF-only uploads initially
-
-- Secure file storage
-
-- Never expose service-role keys
-
-- Printer agent authentication
-
-- Row-level security
-
-- Server-side price calculation
-
-- Prevent duplicate print jobs
-
-- Idempotency key for job submission
-
-- Automatic job expiration
-
+- Stations
+- Users / roles
+- Printers
+- QR sessions
+- Print jobs
+- Pricing rules
+- Agent devices
 - Audit logs
 
-Do not allow students to access the admin dashboard.
+Create your own Supabase project and apply the migrations using your preferred Supabase workflow.
 
-==================================================
+### Production rule
 
-14. ADMIN AUTHENTICATION
+Keep privileged credentials **server-side only**.
 
-==================================================
+Never expose or commit:
 
-Create authentication-ready owner login.
+- Supabase service-role keys
+- Agent secrets
+- Production database credentials
+- Cron secrets
+- Private storage credentials
 
-Routes:
+---
 
-/login
+## 🖨️ Print Agent
 
-/dashboard
+The Print Agent runs on the stationery Windows PC.
 
-Owner authentication using Supabase Auth.
+~~~text
+QuickPrint queue
+      ↓
+Agent authenticates
+      ↓
+Agent claims station job
+      ↓
+Downloads PDF
+      ↓
+Windows print subsystem
+      ↓
+Physical printer
+~~~
 
-Roles:
+The agent is intentionally separate from the browser so physical printing remains a local-machine responsibility.
 
-OWNER
+Read the dedicated guide:
 
-STAFF
+**[Print Agent documentation](./print-agent/README.md)**
 
-ADMIN
+### Agent API surface
 
-Students do not need accounts for V1.
+| Endpoint | Purpose |
+|---|---|
+| POST /api/print-agent/heartbeat | Report agent health |
+| GET /api/print-agent/jobs | Discover available jobs |
+| POST /api/print-agent/jobs/:jobId/claim | Claim a job |
+| POST /api/print-agent/jobs/:jobId/status | Report printing status |
 
-Student flow should be:
+The agent must only access jobs belonging to its assigned station.
 
-Scan → Upload → Configure → Submit
+---
 
-No signup.
+## 🛡️ Security
 
-==================================================
+Security is part of the product architecture.
 
-15. DATABASE
+QuickPrint is designed around:
 
-==================================================
+- 🔐 Short-lived QR tokens
+- ⏱️ Session expiration
+- 🚫 Previous QR invalidation
+- 🧮 Server-side price calculation
+- 📦 PDF-only upload validation
+- 📏 File-size limits
+- 🗃️ Secure file storage
+- 🔒 Supabase Row Level Security
+- 🤖 Print-agent authentication
+- ♻️ Idempotent job submission
+- 🧾 Audit logging
+- ⌛ Automatic job expiration
+- 🛑 Student/owner permission separation
 
-Prepare Supabase database schema for:
+For vulnerability reporting, see **[SECURITY.md](./SECURITY.md)**.
 
-stations
+---
 
-users
+## 🧪 Demo mode
 
-printers
+A physical printer is not required to develop the web experience.
 
-qr_sessions
+The development workflow can simulate:
 
-print_jobs
-
-pricing_rules
-
-agent_devices
-
-audit_logs
-
-Relationships:
-
-station
-
-→ printer
-
-→ pricing rules
-
-→ QR sessions
-
-→ print jobs
-
-printer
-
-→ agent device
-
-→ print jobs
-
-==================================================
-
-16. UI STATES
-
-==================================================
-
-Design all important states.
-
-Loading:
-
-"Preparing your print session..."
-
-Uploading:
-
-"Uploading PDF..."
-
-Processing:
-
-"Analyzing document..."
-
-Queued:
-
-"Your document is queued."
-
-Printing:
-
-"Your document is printing."
-
-Completed:
-
-"Print completed. Collect your document at the counter."
-
-Failed:
-
-"Something went wrong while printing."
-
-Expired QR:
-
-"This QR session has expired."
-
-Show:
-
-"Please scan the latest QR displayed at the stationery."
-
-Invalid session:
-
-"This print session is no longer valid."
-
-Printer offline:
-
-"Printer is currently offline. Your job will remain queued."
-
-==================================================
-
-17. MOBILE-FIRST STUDENT EXPERIENCE
-
-==================================================
-
-The student interface is the most important part.
-
-Optimize specifically for:
-
-Android phones
-
-iPhones
-
-Large buttons.
-
-Large upload area.
-
-Minimal typing.
-
-Clear pricing.
-
-Fast loading.
-
-Student should be able to complete:
-
-Scan QR
-
-→ Upload
-
-→ Select options
-
-→ See amount
-
-→ Submit
-
-in under one minute.
-
-==================================================
-
-18. RESPONSIVE ADMIN EXPERIENCE
-
-==================================================
-
-Desktop-first dashboard.
-
-Mobile responsive.
-
-Use:
-
-- Clean sidebar
-
-- Cards
-
-- Tables
-
-- Status badges
-
-- Charts only where useful
-
-- No excessive visual decoration
-
-==================================================
-
-19. LANDING PAGE
-
-==================================================
-
-Also create a minimal SaaS landing page at:
-
-/
-
-Headline:
-
-"Print from anywhere. Submit only when you're there."
-
-Subheadline:
-
-"QR-powered printing for modern stationery stores, colleges, libraries, and print centers."
-
-CTA:
-
-"Get Started"
-
-Secondary CTA:
-
-"View Demo"
-
-Show simple 3-step explanation:
-
-01
-
-Scan the QR
-
-02
-
-Upload & customize
-
-03
-
-Collect your prints
-
-Include a simple architecture visual:
-
-Student
-
-→ QR
-
-→ Print Queue
-
-→ Printer
-
-Do not make the landing page overly marketing-heavy.
-
-==================================================
-
-20. DEMO MODE
-
-==================================================
-
-Because the physical Windows Print Agent will be connected later, create a development/demo mode.
-
-Allow the dashboard to simulate:
-
+~~~text
 QUEUED
+  ↓
+PRINTING
+  ↓
+COMPLETED
+~~~
 
-→ PRINTING
+The UI should clearly identify simulated printing as **Demo Print Agent** and never represent a simulated job as a real physical print.
 
-→ COMPLETED
+---
 
-with realistic timing.
+## ☁️ Deployment
 
-Clearly label this as:
+A typical production topology:
 
-"Demo Print Agent"
+~~~text
+                 ┌───────────────┐
+                 │    Vercel     │
+                 │  QuickPrint   │
+                 └───────┬───────┘
+                         │
+                  ┌──────▼──────┐
+                  │   Supabase  │
+                  │ DB + Auth + │
+                  │   Storage   │
+                  └──────┬──────┘
+                         │
+                Secure agent API
+                         │
+                  ┌──────▼──────┐
+                  │ Windows PC  │
+                  │ Print Agent │
+                  └──────┬──────┘
+                         │
+                  ┌──────▼──────┐
+                  │   Printer   │
+                  └─────────────┘
+~~~
 
-Do not pretend a physical print occurred in demo mode.
+Configure production environment variables in your hosting provider rather than committing them to Git.
 
-==================================================
+---
 
-21. IMPORTANT ARCHITECTURE RULE
+## 📱 Product surfaces
 
-==================================================
+| Surface | Purpose |
+|---|---|
+| **Station Display** | Shows the active QR and expiry countdown |
+| **Student Session** | Mobile-first upload and print configuration |
+| **Owner Dashboard** | Queue, printer, pricing, history, and settings |
+| **Print Agent** | Bridges the cloud queue to the physical printer |
 
-Separate:
+The student experience is optimized around:
 
-Frontend
+**Scan → Upload → Configure → Submit → Collect**
 
-Backend
+---
 
-Storage
+## 🗺️ Roadmap
 
-Print Queue
+Potential future improvements:
 
-Windows Print Agent
+- [ ] Online payments
+- [ ] Multiple printers per station
+- [ ] Printer capability detection
+- [ ] Better PDF preview
+- [ ] Advanced analytics
+- [ ] Multi-station owner accounts
+- [ ] Staff permissions
+- [ ] Notifications
+- [ ] Retry / recovery workflows
+- [ ] Queue prioritization
+- [ ] Print-history exports
+- [ ] Native mobile experience
+- [ ] Multi-campus deployment tooling
 
-Do NOT attempt browser-based direct printing.
+See [roadmap.md](./roadmap.md).
 
-The actual physical printing must eventually happen through:
+---
 
-Windows Print Agent → Windows Printer
+## 🤝 Contributing
 
-The web app only creates and manages print jobs.
+Contributions are welcome.
 
-==================================================
+~~~bash
+git checkout -b feature/my-feature
+npm run typecheck
+npm run lint
+npm run build
+git commit -m "feat: describe the change"
+git push origin feature/my-feature
+~~~
 
-22. FINAL QUALITY BAR
+Then open a pull request.
 
-==================================================
+Read **[CONTRIBUTING.md](./CONTRIBUTING.md)** before contributing.
 
-The result should look like a startup-ready SaaS MVP.
+---
 
-Prioritize:
+## 📄 License
 
-- Excellent spacing
+QuickPrint is released under the **MIT License**.
 
-- Strong typography
+See [LICENSE](./LICENSE).
 
-- Clear hierarchy
+---
 
-- Minimal UI
+## 👋 Built by Pavan Tungala
 
-- Fast workflows
+QuickPrint is being developed as a practical printing infrastructure product for campuses, stationery stores, libraries, and print centers.
 
-- Professional empty states
+<p align="center">
+  <a href="https://github.com/thepavann">GitHub</a> ·
+  <a href="https://github.com/thepavann/Quick-Print/issues">Issues</a> ·
+  <a href="https://github.com/thepavann/Quick-Print">Repository</a>
+</p>
 
-- Good error states
-
-- Smooth but subtle transitions
-
-- Consistent component system
-
-- Accessible contrast
-
-- Mobile responsiveness
-
-Do not:
-
-- Use excessive gradients
-
-- Use huge decorative illustrations
-
-- Use unnecessary animations
-
-- Create fake analytics
-
-- Create unnecessary pages
-
-- Make it look like a generic AI-generated dashboard
-
-Make the product feel like a real SaaS product that could be deployed to 100 stationery shops.
-
-Build the complete frontend experience and backend-ready architecture now.
-
-## Repository independence
-
-QuickPrint is intentionally independent of any app builder. The repository contains the web application, Supabase migrations, and the Windows Print Agent source. There are no required proprietary editor/runtime integrations.
-
-For a public GitHub repository:
-
-- Never commit `.env`, Supabase service-role keys, agent tokens, or production credentials.
-- Create your own Supabase project and apply the migrations in `supabase/migrations/`.
-- Set `VITE_PUBLIC_APP_URL` to the public URL students should use.
-- Set server-only Supabase and cron secrets in your hosting provider.
-- The Windows Print Agent is installed separately on the stationery PC.
-
-## Development
-
-QuickPrint is a standalone, open-source TanStack Start application. It has no dependency on Lovable or any proprietary editor/runtime. Configure your own Supabase project using `.env.example`, then run:
-
-```sh
-npm install
-npm run dev
-```
-
-For production, deploy the TanStack Start application on a Node-compatible host such as Vercel and configure the same Supabase environment variables. The Windows Print Agent runs independently on the stationery PC. Never commit `.env`, service-role keys, agent tokens, or other secrets to Git.
-
-## License
-
-QuickPrint is released under the MIT License. See `LICENSE`.
+<p align="center">
+  <sub>QuickPrint — scan it. send it. print it.</sub>
+</p>
