@@ -1,0 +1,19 @@
+<svg width="1600" height="520" viewBox="0 0 1600 520" xmlns="http://www.w3.org/2000/svg">
+<rect width="1600" height="520" rx="28" fill="#FFFFFF"/>
+<g transform="translate(70 80)">
+<circle cx="180" cy="180" r="180" fill="#0B0F14"/>
+<g transform="translate(78 72)" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linejoin="round">
+<path d="M66 57V22C66 10 76 0 88 0h108c12 0 22 10 22 22v35"/>
+<path d="M38 57h208c21 0 38 17 38 38v77c0 21-17 38-38 38h-18v58H56v-58H38c-21 0-38-17-38-38V95c0-21 17-38 38-38Z"/>
+<path d="M58 137h168v94H58z"/>
+</g>
+<path d="M125 194h70" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/>
+<circle cx="294" cy="113" r="10" fill="#FFFFFF"/>
+</g>
+<g transform="translate(520 158)">
+<text x="0" y="165" fill="#0B0F14" font-family="Inter,Arial,sans-serif" font-size="168" font-weight="800" letter-spacing="-8">QuickPrint</text>
+</g>
+<text x="528" y="375" fill="#4B5563" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="500">QR-powered printing, built for the real world.</text>
+<line x1="528" y1="405" x2="1390" y2="405" stroke="#E5E7EB" stroke-width="2"/>
+<text x="528" y="448" fill="#6B7280" font-family="Inter,Arial,sans-serif" font-size="18">SCAN  •  UPLOAD  •  PRINT</text>
+</svg>
