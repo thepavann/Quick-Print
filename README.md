@@ -1,7 +1,7 @@
 # QuickPrint
 
 <p align="center">
-  <img src="./assets/quickprint-banner.svg" alt="QuickPrint — QR-powered printing" width="100%"/>
+  <img src="./assets/quickprint-brand.svg" alt="QuickPrint — QR-powered printing" width="100%"/>
 </p>
 
 <p align="center">
